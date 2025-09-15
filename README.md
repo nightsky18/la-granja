@@ -43,19 +43,17 @@ Guía desde cero. Se requieren:
 
 1) Clonar repositorio
 ```
-git clone https://github.com/usuario/la-granja-porcina.git
-cd la-granja-porcina
+cd la-granja-sa
 ```
 2) Back-end (API Express + Mongoose)
 ```
 cd backend
-cp .env.example .env
 ```
 - Editar .env con la cadena de conexión (MONGODB_URI) y puerto (PORT=5000)
 
 ```
 npm install
-npm run dev # o npm start
+node index.js
 ```
 3) Front-end (React)
 ```
@@ -67,7 +65,7 @@ npm start
 
 4) Datos iniciales (opcional)
 - Crear algunos Clientes, Alimentaciones y Porcinos desde la UI para probar.
-- Ver módulo Reportes en la ruta “/reportes”.
+- Ver módulo Reportes en la ruta “/reports”.
 
 Descargas necesarias
 - Node.js: https://nodejs.org/
@@ -105,7 +103,6 @@ Descargas necesarias
 ### Structure
 ![Estructura del proyecto](frontend/src/estructura.png)
 
-
 ---
 
 ## Useful resources
@@ -121,6 +118,6 @@ Sin licencia
 
 ## Authors
   - Mateo Berrío Cardona
-  - Mariana Montoya
+  - Mariana Montoya Sepúlveda
 
 
