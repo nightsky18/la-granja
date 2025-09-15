@@ -173,6 +173,8 @@ export default function AlimentacionCRUD() {
     }
   }
 
+  
+
   async function del(id) {
     const ok = await Swal.fire({
       title: '¿Eliminar alimentación?',

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import Swal from 'sweetalert2';
-
+import { exportToPdf } from '../utils/exportToPdf';
 import ClienteCRUD from './ClienteCrud';
 import AlimentacionCRUD from './AlimentacionCrud';
 import EditarHistorialModal from './EditarHistorialModal';
@@ -195,6 +195,38 @@ export default function PorcinoCRUD() {
       Swal.fire('Error', 'Error de conexión al registrar alimentación.', 'error');
     }
   }
+  function exportPorcinosPdf() {
+  const columns = ['Identificación', 'Raza', 'Edad (meses)', 'Peso (kg)', 'Cliente'];
+  const rows = porcinos.map(p => [
+    p.identificacion,
+    ['', 'York', 'Hamp', 'Duroc'][p.raza],
+    p.edad,
+    p.peso,
+    `${p.cliente?.nombres || ''} ${p.cliente?.apellidos || ''}`.trim()
+  ]);
+  exportToPdf({
+    title: 'Reporte de Porcinos',
+    columns, rows,
+    fileName: `porcinos_${new Date().toISOString().slice(0,10)}.pdf`,
+    subtitle: 'Listado general',
+    orientation: 'p'
+  });
+}
+
+function exportHistorialPdf(p) {
+  const columns = ['Alimento', 'Dosis (lbs)', 'Fecha'];
+  const rows = (p.historialAlimentacion || []).map(h => {
+    const nombre = h.alimentacion?._id ? h.alimentacion?.nombre : (h.nombreSnapshot || 'Alimento (histórico)');
+    return [nombre, h.dosis, new Date(h.fecha).toLocaleDateString()];
+  });
+  exportToPdf({
+    title: `Historial de Alimentaciones - ${p.identificacion}`,
+    columns, rows,
+    fileName: `historial_${p.identificacion}_${new Date().toISOString().slice(0,10)}.pdf`,
+    orientation: 'p'
+  });
+}
+
 
   function abrirHistorialModal(p) {
     setPorcinoHist(p);
@@ -259,6 +291,9 @@ export default function PorcinoCRUD() {
             </button>
             <button className="btn btn-outline" type="button" onClick={() => setShowClienteForm(true)}>Nuevo cliente</button>
             <button className="btn btn-outline" type="button" onClick={() => setShowAlimentacionForm(true)}>Nueva alimentación</button>
+              <button className="btn btn-outline" type="button" onClick={exportPorcinosPdf}>
+      Exportar PDF
+    </button>
           </div>
         </form>
       </section>
@@ -336,7 +371,9 @@ export default function PorcinoCRUD() {
             <div className="form-actions">
               <button className="btn btn-primary" type="submit">Guardar</button>
               <button className="btn btn-outline" type="button" onClick={() => setAlimentarModalOpen(false)}>Cancelar</button>
+
             </div>
+
           </form>
         </div>
       </Modal>
@@ -389,7 +426,9 @@ export default function PorcinoCRUD() {
           </table>
           <div className="form-actions">
             <button className="btn btn-outline" onClick={() => setHistModalOpen(false)}>Cerrar</button>
+             <button className="btn btn-primary" onClick={() => exportHistorialPdf(porcinoHist)}>Exportar PDF</button>
           </div>
+          
         </div>
       </Modal>
 
