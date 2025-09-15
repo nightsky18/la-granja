@@ -15,19 +15,16 @@ export default function EditarHistorialModal({
   const [form, setForm] = useState({ alimentacionId: '', dosis: '' });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && registro) {
-      fetch(API_ALIMS)
-        .then(r => r.json())
-        .then(setAlimentaciones)
-        .catch(() => setAlimentaciones([]));
+useEffect(() => {
+  if (isOpen && registro) {
+    fetch(API_ALIMS).then(r => r.json()).then(setAlimentaciones).catch(() => setAlimentaciones([]));
+    setForm({
+      alimentacionId: registro?.alimentacion?._id || '', // queda vacío si fue eliminada
+      dosis: registro?.dosis || ''
+    });
+  }
+}, [isOpen, registro]);
 
-      setForm({
-        alimentacionId: registro?.alimentacion?._id || '',
-        dosis: registro?.dosis || ''
-      });
-    }
-  }, [isOpen, registro]);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -70,41 +67,57 @@ Swal.fire('Listo', 'Historial actualizado.', 'success');
       setLoading(false);
     }
   }
-
-  return (
-    <Modal isOpen={isOpen} onRequestClose={onRequestClose} ariaHideApp={false}>
-      <h3>Editar registro de alimentación</h3>
-      <form onSubmit={save}>
-        <select
-          name="alimentacionId"
-          value={form.alimentacionId}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Seleccione alimentación</option>
-          {alimentaciones.map(a => (
-            <option key={a._id} value={a._id}>
-              {a.nombre} (Stock: {a.cantidadLibras} lbs)
-            </option>
-          ))}
-        </select>
-        <input
-          type="number"
-          name="dosis"
-          value={form.dosis}
-          onChange={handleChange}
-          placeholder="Dosis (lbs)"
-          min="0.1"
-          step="0.1"
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Guardando...' : 'Guardar'}
-        </button>
-        <button type="button" onClick={onRequestClose} disabled={loading}>
-          Cancelar
-        </button>
-      </form>
-    </Modal>
-  );
+  const existeAlim = Boolean(registro?.alimentacion?._id);
+  
+return (
+  <Modal isOpen={isOpen} onRequestClose={onRequestClose} ariaHideApp={false}>
+    {existeAlim ? (
+      <>
+        <h3>Editar registro de alimentación</h3>
+        <form onSubmit={save}>
+          <select
+            name="alimentacionId"
+            value={form.alimentacionId}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Seleccione alimentación</option>
+            {alimentaciones.map(a => (
+              <option key={a._id} value={a._id}>
+                {a.nombre} (Stock: {a.cantidadLibras} lbs)
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            name="dosis"
+            value={form.dosis}
+            onChange={handleChange}
+            placeholder="Dosis (lbs)"
+            min="0.1"
+            step="0.1"
+            required
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? 'Guardando...' : 'Guardar'}
+          </button>
+          <button type="button" onClick={onRequestClose} disabled={loading}>
+            Cancelar
+          </button>
+        </form>
+      </>
+    ) : (
+      <>
+        <h3>Registro no editable</h3>
+        <p>
+          La alimentación original fue eliminada. Se conserva el nombre histórico:{" "}
+          <strong>{registro?.nombreSnapshot || 'Alimento (histórico)'}</strong>.
+        </p>
+        <p>Dosis: <strong>{registro?.dosis}</strong> lbs</p>
+        <p>Fecha: <strong>{registro?.fecha ? new Date(registro.fecha).toLocaleDateString() : '-'}</strong></p>
+        <button type="button" onClick={onRequestClose}>Cerrar</button>
+      </>
+    )}
+  </Modal>
+);
 }

@@ -36,8 +36,14 @@ router.post('/:id/alimentar', async (req, res) => {
     }
 
     // Actualizar historial porcino
-    porcino.historialAlimentacion.push({ alimentacion: alimentacion._id, dosis: Number(dosis) });
-    await porcino.save();
+   porcino.historialAlimentacion.push({
+  alimentacion: alimentacion._id,
+  nombreSnapshot: alimentacion.nombre,         // snapshot
+  descripcionSnapshot: alimentacion.descripcion, // opcional
+  dosis: Number(dosis),
+  fecha: new Date()
+});
+await porcino.save();
 
     // Actualizar historial de alimentación y stock
     alimentacion.historialPorcinos.push({ porcino: porcino._id, dosis: Number(dosis) });
@@ -91,7 +97,7 @@ router.delete('/:id', async (req, res) => {
 // Editar un registro del historial (ajuste de stock por delta)
 router.put('/:porcinoId/historial/:histId', async (req, res) => {
   try {
-    const { alimentacionId, dosis } = req.body; // valores nuevos
+    const { alimentacionId, dosis } = req.body;
     const porcino = await Porcino.findById(req.params.porcinoId);
     if (!porcino) return res.status(404).json({ mensaje: 'Porcino no encontrado' });
 
@@ -103,8 +109,14 @@ router.put('/:porcinoId/historial/:histId', async (req, res) => {
 
     // Alimentaciones involucradas
     const alimAnterior = await Alimentacion.findById(anterior.alimentacion);
+
+    // Si la alimentación original ya NO existe, el registro es de solo lectura
+    if (!alimAnterior) {
+      return res.status(400).json({ mensaje: 'La alimentación original fue eliminada; este registro histórico es de solo lectura.' });
+    }
+
     const alimNueva = await Alimentacion.findById(alimentacionId || anterior.alimentacion);
-    if (!alimAnterior || !alimNueva) {
+    if (!alimNueva) {
       return res.status(404).json({ mensaje: 'Alimentación no encontrada' });
     }
 
@@ -134,11 +146,15 @@ router.put('/:porcinoId/historial/:histId', async (req, res) => {
       }
       alimNueva.cantidadLibras -= nuevaDosis;
       await alimNueva.save();
+
+      // Actualizar snapshot con datos de la nueva alimentación
+      anterior.nombreSnapshot = alimNueva.nombre;
+      anterior.descripcionSnapshot = alimNueva.descripcion;
     }
 
     // Actualizar el registro
-    porcino.historialAlimentacion[idx].alimentacion = alimNueva._id;
-    porcino.historialAlimentacion[idx].dosis = nuevaDosis;
+    anterior.alimentacion = alimNueva._id;
+    anterior.dosis = nuevaDosis;
     await porcino.save();
 
     return res.json({ mensaje: 'Registro de historial actualizado con ajuste de stock' });
@@ -147,20 +163,27 @@ router.put('/:porcinoId/historial/:histId', async (req, res) => {
   }
 });
 
+
 // Eliminar un registro del historial (y devolver stock)
 router.delete('/:porcinoId/historial/:histId', async (req, res) => {
   try {
-    const porcino = await Porcino.findById(req.params.porcinoId);
+    const { porcinoId, histId } = req.params;
+
+    const porcino = await Porcino.findById(porcinoId);
     if (!porcino) return res.status(404).json({ mensaje: 'Porcino no encontrado' });
 
-    const idx = porcino.historialAlimentacion.findIndex(h => String(h._id) === req.params.histId);
+    const idx = porcino.historialAlimentacion.findIndex(h => String(h._id) === histId);
     if (idx === -1) return res.status(404).json({ mensaje: 'Registro de historial no encontrado' });
 
     const reg = porcino.historialAlimentacion[idx];
-    const alim = await Alimentacion.findById(reg.alimentacion);
-    if (alim) {
-      alim.cantidadLibras += Number(reg.dosis);
-      await alim.save();
+
+    // Si la referencia existe, devuelve stock; si no, omite el ajuste
+    if (reg.alimentacion) {
+      const alim = await Alimentacion.findById(reg.alimentacion);
+      if (alim) {
+        alim.cantidadLibras += Number(reg.dosis);
+        await alim.save();
+      }
     }
 
     porcino.historialAlimentacion.splice(idx, 1);
@@ -168,8 +191,10 @@ router.delete('/:porcinoId/historial/:histId', async (req, res) => {
 
     return res.json({ mensaje: 'Registro de historial eliminado' });
   } catch (error) {
+    // log opcional: console.error('DELETE historial error', error);
     return res.status(500).json({ mensaje: 'Error al eliminar historial', error: error.message });
   }
 });
+
 
 module.exports = router;

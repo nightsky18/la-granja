@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const historialAlimentacionSchema = new mongoose.Schema({
   alimentacion: { type: mongoose.Schema.Types.ObjectId, ref: 'Alimentacion', required: true },
-  dosis: { type: Number, required: true }, // en libras
+  nombreSnapshot: { type: String },         // nuevo
+  descripcionSnapshot: { type: String },    // nuevo
+  dosis: { type: Number, required: true },
   fecha: { type: Date, default: Date.now }
 });
 
