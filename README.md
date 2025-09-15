@@ -105,6 +105,11 @@ Descargas necesarias
 
 ---
 
+### Class Diagram
+![Diagrama de clases](frontend/src/DiagramaClasesGranja.svg)
+
+---
+
 ## Useful resources
 - React: crear proyecto y estructura de archivos (MDN/getting started).
 - jsPDF + autoTable: generación de PDF y tablas con encabezados y estilos (exportación).
