@@ -109,8 +109,8 @@ Descargas necesarias
 ---
 
 ## Useful resources
-- React: crear proyecto y estructura de archivos (MDN/getting started). [web:475][web:473]
-- jsPDF + autoTable: generación de PDF y tablas con encabezados y estilos (exportación). [web:448][web:438]
+- React: crear proyecto y estructura de archivos (MDN/getting started).
+- jsPDF + autoTable: generación de PDF y tablas con encabezados y estilos (exportación).
 
 ---
 
